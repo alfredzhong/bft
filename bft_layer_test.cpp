@@ -20,6 +20,15 @@ int bft_layer_test() {
         print_error_code(ret);
     }
 
+    if ( (ret=test_sort()) != 0) {
+        print_error_code(ret);
+    }
+
+    if ( (ret=test_sort2()) != 0) {
+        print_error_code(ret);
+    }
+
+
     return ret;
 }
 
@@ -64,20 +73,23 @@ int test_addition() {
 int test_sort() {
     int ret = 0;
     int n = 10;
-    bft::bft_layer<int> layer(n);
+    bft::bft_layer<int> layer(n, compare_int);
     for (int i=n-1; i>=0; i--) {
         if (layer.add(i) != 0) {
             ret = 5;
-            break;
+            return ret;
         }
 
-        if (layer.size() != i+1) {
+        if (layer.size() != 10-i) {
             ret = 6;
-            break;
+            return ret;
         }
     }
 
-    layer.sort();
+    if ( (ret = layer.sort()) != 0) {
+        ret = 77;
+        return ret;
+    }
 
     for (int i=0; i<n; i++) {
         int* cur = layer.get(i);
@@ -90,7 +102,49 @@ int test_sort() {
     return ret;
 }
 
-int add_sequence(bft::bft_layer<int> l, int start, int end) {
+
+int test_sort2() {
+    int ret = 0;
+    int n = 10;
+    bft::bft_layer<int> layer(n);
+    for (int i=n-1; i>=0; i--) {
+        if (layer.add(i) != 0) {
+            ret = 12;
+            return ret;
+        }
+
+        if (layer.size() != 10-i) {
+            ret = 13;
+            return ret;
+        }
+    }
+
+    if (layer.sort() != -1) {
+        ret = 14;
+        return ret;
+    }
+
+    layer.set_compare_func(&compare_int);
+
+    if (layer.sort() != 0) {
+        ret = 15;
+        return ret;
+    }
+
+
+    for (int i=0; i<n; i++) {
+        int* cur = layer.get(i);
+        if (*cur != i) {
+            ret = 16;
+            return ret;
+        }
+    }
+
+    return ret;
+}
+
+
+int add_sequence(bft::bft_layer<int> &l, int start, int end) {
     int ret;
     for (int i=start; i<=end; i++) {
         ret = l.add(i);
@@ -103,7 +157,7 @@ int add_sequence(bft::bft_layer<int> l, int start, int end) {
 }
 
 int testClear() {
-    bft::bft_layer<int> l = new bft::bft_layer<int>(10);
+    bft::bft_layer<int> l(10); 
     int ret = add_sequence(l, 0, 9);
     if (ret != 0) {
         ret = 9;
@@ -117,4 +171,7 @@ int testClear() {
     return ret;
 }
 
+bool compare_int(int i, int j) {
+    return i<j;
+}
 
