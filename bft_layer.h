@@ -31,13 +31,14 @@ namespace bft {
             int capacity;
             bool (*compare_func)(bft::bft_node<K,V>, bft::bft_node<K,V>);
 
-            std::mutex fallback_mutax;
+            std::mutex *fallback_mutex;
         public:
             bft_layer(int capacity) {
                 this->capacity = capacity;
                 data = new std::vector<bft::bft_node<K,V> >();
                 data->reserve(capacity);
                 compare_func = NULL;
+                fallback_mutex = new std::mutex();
             }
 
 
@@ -46,6 +47,7 @@ namespace bft {
                 data = new std::vector<bft::bft_node<K,V> >();
                 data->reserve(capacity);
                 this->compare_func = compare_func;
+                fallback_mutex = new std::mutex();
             }
 
 
