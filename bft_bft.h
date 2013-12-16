@@ -19,16 +19,19 @@ namespace bft {
     class bft_bft {
 
         private:
-            std::vector<bft::bft_layer<K, V> > *layers;
+            std::vector<bft::bft_layer<K, V> > *layers = NULL;
             int cur_size; 
             std::mutex *fallback_mutex;
+            int first_layer_capacity;
         public:
-            bft_bft(int first_layer_size, int initial_layers) {
+            bft_bft(int first_layer_capacity, int initial_layers) {
                 layers = new std::vector<bft::bft_layer<K, V> >();
                 layers->reserve(initial_layers);
-                bft::bft_layer<K, V> first_layer(first_layer_size);
-                layers->push_back(first_layer);
+                bft::bft_layer<K, V>* first_layer 
+                    = new bft::bft_layer<K, V>(first_layer_capacity);
+                layers->push_back(*first_layer);
                 fallback_mutex = new std::mutex();
+                this->first_layer_capacity = first_layer_capacity;
             }
 
             bft_bft() {
@@ -37,6 +40,7 @@ namespace bft {
                 bft::bft_layer<K, V> first_layer;
                 layers->push_back(first_layer);
                 fallback_mutex = new std::mutex();
+                first_layer_capacity = BFT_DEFAULT_LAYER_SIZE;
             }
 
             ~bft_bft() {
@@ -59,6 +63,24 @@ namespace bft {
             }
 
             int add(bft::bft_node<K, V> node) {
+                /*
+                int ret;
+                if (_xbegin() == -1) {
+                    if (layers->at(0).size() < first_layer_capacity) {
+                        if (layers->at(0).add(node) != 0) {
+                            ret = -1;
+                            _xend();
+                            return ret;
+                        }
+                    }
+                    if (layers->at(0).size() == first_layer_capacity) {
+                        if (layers->
+                    }
+                    _xend();
+                } else {
+
+                }
+                */
                 return 0;
             }
 

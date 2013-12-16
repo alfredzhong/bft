@@ -59,8 +59,11 @@ namespace bft {
             }
 
             ~bft_layer() {
-                data->clear();
-                delete data;
+                if (data != NULL) {
+                    data->clear();
+                    delete data;
+                    data = NULL;
+                } 
             }
 
             void set_compare_func(bool (*compare_func)(bft::bft_node<K,V>, bft::bft_node<K,V>)) {
@@ -159,6 +162,20 @@ namespace bft {
             std::vector<bft::bft_node<K,V> >* find(K key) {
                 return binary_search(key);
             }
+
+            void merge_to(bft::bft_layer<K,V> *another_layer) {
+                int n = data->size();
+                int m = another_layer->size();
+                for (int i=0; i<n; i++) {
+                    another_layer->data.push_back(data->at(i));
+                }
+                int i = n-1, j = m-1, k = m + n-1;
+                while (i>=0 && j>=0) {
+                    //if (
+                }
+            }
+
+
     };
 
 

@@ -15,6 +15,8 @@ int main() {
     ret = bft_test();
     if (ret != 0) {
         print_error_code(ret);
+    } else {
+        std::cout<<"BFT Tests Pass!"<<std::endl;
     }
 
     return 0;
