@@ -9,6 +9,9 @@
 #include <string>
 #include <iostream>
 
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
+
 #define BFT_DEFAULT_LAYER_SIZE 1024
 
 namespace bft {
@@ -79,7 +82,7 @@ namespace bft {
             // return 0, if add was successful
             // return -1 otherwise
             int add(bft::bft_node<K,V> t) {
-                if (data->size() + 1> capacity) {
+                if (data == NULL || data->size() + 1> capacity) {
                     return -1;
                 }
                 data->push_back(t);
@@ -87,6 +90,9 @@ namespace bft {
             }
 
             int size() {
+                if (data == NULL) {
+                    return -1;
+                }
                 return data->size();
             }
 
@@ -105,7 +111,9 @@ namespace bft {
             int sort() {
                 if (data->size() <= 1) return 0;
                 if (compare_func==NULL) return -1;
+                std::cout<<"in sort: to sort"<<std::endl;
                 std::sort(data->begin(), data->end(), compare_func);
+                std::cout<<"in sort: sorted"<<std::endl;
                 return 0;
             }
             
@@ -176,6 +184,7 @@ namespace bft {
                     another_layer->add(data->at(i));
                 }
                 another_layer->sort();
+                std::cout<<"new layer sorted"<<std::endl;
                 data->clear();
             }
 
@@ -198,7 +207,14 @@ namespace bft {
             }
 
             void lock() {
+                std::cout<<"trying to lock"<<std::endl;
                 fallback_mutex->lock();
+/*                while (fallback_mutex->try_lock() == false) {
+                    for (long long i=0; i<1e9; i++) {
+                        for (long long i=0; i<1e9; i++) {
+                        }
+                    }
+                }*/
             }
              
             void unlock() {

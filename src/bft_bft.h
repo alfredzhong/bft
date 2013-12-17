@@ -10,6 +10,7 @@
 #include <immintrin.h>
 
 #include <bft_layer.h>
+#include <stdio.h>
 
 #define DEFAULT_INIT_LAYERS 5
 
@@ -109,14 +110,20 @@ namespace bft {
                     }
                 } else {
                     std::cout<<"bft_bft::add(): txn fail, use fallback mutex"<<std::endl;
+                    fflush(stdout);
+
                     layers->at(0).lock();
+                    std::cout<<"layer 0 lock"<<std::endl;
+                    fflush(stdout);
 
                     if (layers->at(0).size() + 1 <= first_layer_capacity) {
                         if (layers->at(0).add(node) != 0) {
                             ret = -1;
                             layers->at(0).unlock();
+                            std::cout<<"layer 0 unlock"<<std::endl;
+                            fflush(stdout);
                             return ret;
-                        }
+                        } 
                         cur_size ++;
                         if (layers->at(0).size() == first_layer_capacity) {
                             layers->at(0).sort();
@@ -129,21 +136,31 @@ namespace bft {
                                     layers->push_back(*next_layer);
                                 }
                                 layers->at(j).lock();
+                                std::cout<<"layer "<<j<<" lock"<<std::endl;
+                                fflush(stdout);
+                                std::cout<<"to merge"<<std::endl;
                                 layers->at(i).merge_to(&layers->at(j));
+                                fflush(stdout);
                                 layers->at(i).unlock();
+                                std::cout<<"layer "<<i<<" unlock"<<std::endl;
                                 if (layers->at(j).size() < pow(2,j) * first_layer_capacity) {
+                                    fflush(stdout);
                                     layers->at(j).unlock();
+                                    std::cout<<"layer "<<j<<" unlock"<<std::endl;
                                     break;
                                 }
                                 i++; j++;
                             }
+                        } else {
+                            layers->at(0).unlock();
+                            std::cout<<"layer 0 unlock"<<std::endl;
                         }
 
                         return ret;
-                    }
-
+                    } 
 
                     layers->at(0).unlock();
+                    std::cout<<"error, when adding, layer 0 has no space"<<std::endl;
                 }
                 return 0;
             }
