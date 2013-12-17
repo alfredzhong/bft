@@ -6,6 +6,7 @@
 #include <mutex>
 #include <algorithm>
 #include <vector>
+#include <string>
 #include <iostream>
 
 #define BFT_DEFAULT_LAYER_SIZE 1024
@@ -25,8 +26,9 @@ namespace bft {
 
     template <class K, class V>
     class bft_layer {
-        private:
+        protected:
             std::vector<bft_node<K,V> > *data;
+        private:
             int *next;
             int capacity;
             bool (*compare_func)(bft::bft_node<K,V>, bft::bft_node<K,V>);
@@ -165,21 +167,33 @@ namespace bft {
 
             void merge_to(bft::bft_layer<K,V> *another_layer) {
                 int n = data->size();
-                int m = another_layer->size();
+                //int m = another_layer->size();
                 for (int i=0; i<n; i++) {
-                    another_layer->data.push_back(data->at(i));
+                    another_layer->add(data->at(i));
                 }
-                int i = n-1, j = m-1, k = m + n-1;
-                while (i>=0 && j>=0) {
-                    //if (
+                another_layer->sort();
+                data->clear();
+            }
+
+            std::string to_string() {
+                if (data==NULL || data->size() == 0) {
+                    return "<empty layer>\n";
                 }
+                std::string ret = "";
+                int n = data->size();
+                for (int i=0; i<n; i++) {
+                    ret += "(";
+                    ret += data->at(i).key;
+                    ret += ", ";
+                    ret += data->at(i).value;
+                    ret += ") ";
+                }
+                ret += "\n";
+                return ret;
             }
 
 
     };
-
-
-
 }
 
 

@@ -9,5 +9,6 @@ int bft_test();
 
 int test_bft_creation();
 
+int test_bft_addition();
 
 #endif

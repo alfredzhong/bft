@@ -27,9 +27,11 @@ namespace bft {
             bft_bft(int first_layer_capacity, int initial_layers) {
                 layers = new std::vector<bft::bft_layer<K, V> >();
                 layers->reserve(initial_layers);
-                bft::bft_layer<K, V>* first_layer 
-                    = new bft::bft_layer<K, V>(first_layer_capacity);
-                layers->push_back(*first_layer);
+                for (int i=0; i<initial_layers; i++) {
+                    bft::bft_layer<K, V>* layer 
+                        = new bft::bft_layer<K, V>(pow(2, i) * first_layer_capacity);
+                    layers->push_back(*layer);
+                }
                 fallback_mutex = new std::mutex();
                 this->first_layer_capacity = first_layer_capacity;
             }
@@ -37,7 +39,8 @@ namespace bft {
             bft_bft() {
                 layers = new std::vector<bft::bft_layer<K, V> >();
                 layers->reserve(DEFAULT_INIT_LAYERS);
-                bft::bft_layer<K, V> first_layer;
+                bft::bft_layer<K, V>* first_layer 
+                    = new bft::bft_layer<K, V>(first_layer_capacity);
                 layers->push_back(first_layer);
                 fallback_mutex = new std::mutex();
                 first_layer_capacity = BFT_DEFAULT_LAYER_SIZE;
@@ -63,25 +66,43 @@ namespace bft {
             }
 
             int add(bft::bft_node<K, V> node) {
-                /*
-                int ret;
+                int ret = 0;
                 if (_xbegin() == -1) {
-                    if (layers->at(0).size() < first_layer_capacity) {
+                    if (layers->at(0).size() + 1 <= first_layer_capacity) {
                         if (layers->at(0).add(node) != 0) {
                             ret = -1;
                             _xend();
                             return ret;
                         }
-                    }
-                    if (layers->at(0).size() == first_layer_capacity) {
-                        if (layers->
-                    }
-                    _xend();
-                } else {
+                        if (layers->at(0).size() == first_layer_capacity) {
+                            layers->at(0).sort();
+                            int i = 0, j = 1;
+                            while (true) {
+                                if (layers->size() == i+1) {
+                                    int new_layer_capacity = pow(2,i+1)*first_layer_capacity;
+                                    bft::bft_layer<K, V>* next_layer 
+                                        = new bft::bft_layer<K, V>(new_layer_capacity);
+                                    layers->push_back(*next_layer);
+                                }
+                                layers->at(i).merge_to(&layers->at(j));
+                                if (layers->at(j).size() < pow(2,j) * first_layer_capacity) {
+                                    break;
+                                }
+                                i++; j++;
+                            }
+                        }
 
+                        _xend();
+                        return ret;
+                    }
+                } else {
+                    std::cout<<"bft_bft::add(): txn fail"<<std::endl;
                 }
-                */
                 return 0;
+            }
+
+            std::string to_string() {
+                return "";
             }
 
     };
