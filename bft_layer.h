@@ -66,6 +66,10 @@ namespace bft {
                     delete data;
                     data = NULL;
                 } 
+                if (fallback_mutex != NULL) {
+                    delete fallback_mutex;
+                    fallback_mutex = NULL;
+                }
             }
 
             void set_compare_func(bool (*compare_func)(bft::bft_node<K,V>, bft::bft_node<K,V>)) {
@@ -175,6 +179,7 @@ namespace bft {
                 data->clear();
             }
 
+            // debug purpose, only works for both key and value of "int" type
             std::string to_string() {
                 if (data==NULL || data->size() == 0) {
                     return "<empty layer>\n";
@@ -183,15 +188,22 @@ namespace bft {
                 int n = data->size();
                 for (int i=0; i<n; i++) {
                     ret += "(";
-                    ret += data->at(i).key;
+                    ret += std::to_string(data->at(i).key);
                     ret += ", ";
-                    ret += data->at(i).value;
+                    ret += std::to_string(data->at(i).value);
                     ret += ") ";
                 }
                 ret += "\n";
                 return ret;
             }
 
+            void lock() {
+                fallback_mutex->lock();
+            }
+             
+            void unlock() {
+                fallback_mutex->unlock();
+            }
 
     };
 }

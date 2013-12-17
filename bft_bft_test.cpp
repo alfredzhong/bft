@@ -1,6 +1,8 @@
+#include <iostream>
+#include <string>
+
 #include <bft_bft.h>
 #include <bft_layer.h>
-#include <string>
 #include <bft_bft_test.h>
 
 
@@ -37,5 +39,9 @@ int test_bft_addition() {
         bft::bft_node<int,int> cur_kv(i, i*100);
         tree1.add(cur_kv);
     }
+
+    std::cout<<tree1.to_string();
+    std::cout<<"tree1.size() = "<<tree1.size()<<std::endl;
+
     return ret;
 }
