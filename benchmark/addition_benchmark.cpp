@@ -32,32 +32,20 @@ int main(int argc, char** argv) {
         return -1;
     }
     num_threads = atoi(argv[1]);
-    //pthread_t threads[num_threads];
     std::thread *threads[num_threads];
     for (int i=0; i<num_threads; i++) {
         threads[i] = NULL;
     }
-    //int ret[num_threads];
 
-    //tree.set_rtx(false);
     tree.set_rtx(true);
 
-
     for (int i=0; i<num_threads; i++) {
-        //ret[i] = pthread_create(&threads[i], NULL, addition_bench, &tree);
         threads[i] = new std::thread(addition_bench);
     }
 
     for (int i=0; i<num_threads; i++) {
-        //pthread_join(threads[i], NULL);
         threads[i]->join();
     }
-
-    /*
-    for (int i=0; i<num_threads; i++) {
-        std::cout<<"thread "<<i<<" returns "<<ret[i]<<std::endl;
-    }
-    */
 
     std::cout<<tree.to_string();
 
