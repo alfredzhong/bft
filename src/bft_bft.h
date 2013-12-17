@@ -23,6 +23,7 @@ namespace bft {
             int cur_size; 
             std::mutex *fallback_mutex;
             int first_layer_capacity;
+            bool use_rtx = true;
         public:
             bft_bft(int first_layer_capacity, int initial_layers) {
                 cur_size = 0;
@@ -35,6 +36,7 @@ namespace bft {
                 }
                 fallback_mutex = new std::mutex();
                 this->first_layer_capacity = first_layer_capacity;
+                use_rtx = true;
             }
 
             bft_bft() {
@@ -46,6 +48,7 @@ namespace bft {
                 layers->push_back(first_layer);
                 fallback_mutex = new std::mutex();
                 first_layer_capacity = BFT_DEFAULT_LAYER_SIZE;
+                use_rtx = true;
             }
 
             ~bft_bft() {
@@ -69,7 +72,13 @@ namespace bft {
 
             int add(bft::bft_node<K, V> node) {
                 int ret = 0;
-                if (_xbegin() == -1) {
+                int start_txn;
+                if (use_rtx) {
+                    start_txn = _xbegin();
+                } else {
+                    start_txn = 999;
+                }
+                if (start_txn == -1) {
                     if (layers->at(0).size() + 1 <= first_layer_capacity) {
                         if (layers->at(0).add(node) != 0) {
                             ret = -1;
@@ -134,13 +143,40 @@ namespace bft {
                     }
 
 
-
-
-
                     layers->at(0).unlock();
                 }
                 return 0;
             }
+
+            void set_rtx(bool use_rtx) {
+                this->use_rtx = use_rtx;
+            }
+
+            void clear() {
+                int start_txn;
+                if (use_rtx) {
+                    start_txn = _xbegin();
+                } else {
+                    start_txn = 999;
+                }
+                if (start_txn == -1) {
+                    int n = layers->size();
+                    for (int i=0; i<n; i++) {
+                        layers->at(i).clear();
+                    }
+                    cur_size = 0;
+                    _xend();
+                } else {
+                    fallback_mutex->lock();
+                    int n = layers->size();
+                    for (int i=0; i<n; i++) {
+                        layers->at(i).clear();
+                    }
+                    cur_size = 0;
+                    fallback_mutex->unlock();
+                }
+            }
+
 
             std::string to_string() {
                 if (layers ==  NULL || layers->size() == 0) {

@@ -34,10 +34,15 @@ int test_bft_creation() {
 int test_bft_addition() {
     int ret = 0;
     bft::bft_bft<int, int> tree1(10, 10);
-    for (int i=0; i<100; i++) {
-        std::cout<<"i="<<i<<std::endl;
-        bft::bft_node<int,int> cur_kv(i, i*100);
-        tree1.add(cur_kv);
+    //tree1.set_rtx(true);
+    tree1.set_rtx(false);
+    for (int j=0; j<10000; j++) {
+        tree1.clear();
+        for (int i=0; i<100; i++) {
+            std::cout<<"i="<<i<<std::endl;
+            bft::bft_node<int,int> cur_kv(i, i*100);
+            tree1.add(cur_kv);
+        }
     }
 
     std::cout<<tree1.to_string();
