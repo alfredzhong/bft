@@ -39,6 +39,8 @@ int main(int argc, char** argv) {
     }
     //int ret[num_threads];
 
+    //tree.set_rtx(false);
+    tree.set_rtx(true);
 
 
     for (int i=0; i<num_threads; i++) {

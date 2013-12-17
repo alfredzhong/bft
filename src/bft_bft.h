@@ -14,6 +14,9 @@
 
 #define DEFAULT_INIT_LAYERS 5
 
+bool compare(bft::bft_node<int,int> i,  bft::bft_node<int,int> j) {
+    return i.key < j.key;
+}
 
 namespace bft {
     template <class K, class V>
@@ -33,6 +36,7 @@ namespace bft {
                 for (int i=0; i<initial_layers; i++) {
                     bft::bft_layer<K, V>* layer 
                         = new bft::bft_layer<K, V>(pow(2, i) * first_layer_capacity);
+                    layer->set_compare_func(compare);
                     layers->push_back(*layer);
                 }
                 fallback_mutex = new std::mutex();
@@ -95,6 +99,7 @@ namespace bft {
                                     int new_layer_capacity = pow(2,i+1)*first_layer_capacity;
                                     bft::bft_layer<K, V>* next_layer 
                                         = new bft::bft_layer<K, V>(new_layer_capacity);
+                                    next_layer->set_compare_func(compare);
                                     layers->push_back(*next_layer);
                                 }
                                 layers->at(i).merge_to(&layers->at(j));
@@ -133,6 +138,8 @@ namespace bft {
                                     int new_layer_capacity = pow(2,i+1)*first_layer_capacity;
                                     bft::bft_layer<K, V>* next_layer 
                                         = new bft::bft_layer<K, V>(new_layer_capacity);
+
+                                    next_layer->set_compare_func(compare);
                                     layers->push_back(*next_layer);
                                 }
                                 layers->at(j).lock();
