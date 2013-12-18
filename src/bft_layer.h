@@ -111,9 +111,13 @@ namespace bft {
             int sort() {
                 if (data->size() <= 1) return 0;
                 if (compare_func==NULL) return -1;
+#ifdef DEBUG
                 std::cout<<"in sort: to sort"<<std::endl;
+#endif
                 std::sort(data->begin(), data->end(), compare_func);
+#ifdef DEBUG
                 std::cout<<"in sort: sorted"<<std::endl;
+#endif
                 return 0;
             }
             
@@ -184,7 +188,9 @@ namespace bft {
                     another_layer->add(data->at(i));
                 }
                 another_layer->sort();
+#ifdef DEBUG
                 std::cout<<"new layer sorted"<<std::endl;
+#endif
                 data->clear();
             }
 
@@ -207,7 +213,9 @@ namespace bft {
             }
 
             void lock() {
+#ifdef DEBUG
                 std::cout<<"trying to lock"<<std::endl;
+#endif
                 fallback_mutex->lock();
 /*                while (fallback_mutex->try_lock() == false) {
                     for (long long i=0; i<1e9; i++) {

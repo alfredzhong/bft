@@ -14,9 +14,6 @@
 
 #define DEFAULT_INIT_LAYERS 5
 
-bool compare(bft::bft_node<int,int> i,  bft::bft_node<int,int> j) {
-    return i.key < j.key;
-}
 
 namespace bft {
     template <class K, class V>
@@ -28,15 +25,18 @@ namespace bft {
             std::mutex *fallback_mutex;
             int first_layer_capacity;
             bool use_rtx = true;
+            bool (*compare_func)(bft::bft_node<K, V>, bft::bft_node<K, V>);
         public:
-            bft_bft(int first_layer_capacity, int initial_layers) {
+            bft_bft(int first_layer_capacity, int initial_layers, 
+                    bool (*compare)(bft::bft_node<K, V>, bft::bft_node<K, V>)) {
                 cur_size = 0;
                 layers = new std::vector<bft::bft_layer<K, V> >();
                 layers->reserve(initial_layers);
                 for (int i=0; i<initial_layers; i++) {
                     bft::bft_layer<K, V>* layer 
                         = new bft::bft_layer<K, V>(pow(2, i) * first_layer_capacity);
-                    layer->set_compare_func(compare);
+                    compare_func = compare;
+                    layer->set_compare_func(compare_func);
                     layers->push_back(*layer);
                 }
                 fallback_mutex = new std::mutex();
@@ -99,7 +99,7 @@ namespace bft {
                                     int new_layer_capacity = pow(2,i+1)*first_layer_capacity;
                                     bft::bft_layer<K, V>* next_layer 
                                         = new bft::bft_layer<K, V>(new_layer_capacity);
-                                    next_layer->set_compare_func(compare);
+                                    next_layer->set_compare_func(compare_func);
                                     layers->push_back(*next_layer);
                                 }
                                 layers->at(i).merge_to(&layers->at(j));
@@ -145,7 +145,7 @@ namespace bft {
                                     bft::bft_layer<K, V>* next_layer 
                                         = new bft::bft_layer<K, V>(new_layer_capacity);
 
-                                    next_layer->set_compare_func(compare);
+                                    next_layer->set_compare_func(compare_func);
                                     layers->push_back(*next_layer);
                                 }
                                 layers->at(j).lock();
@@ -153,11 +153,9 @@ namespace bft {
                                 std::cout<<"layer "<<j<<" lock"<<std::endl;
                                 fflush(stdout);
                                 std::cout<<"to merge"<<std::endl;
-#endif
-                                layers->at(i).merge_to(&layers->at(j));
-#ifdef DEBUG
                                 fflush(stdout);
 #endif
+                                layers->at(i).merge_to(&layers->at(j));
                                 layers->at(i).unlock();
 #ifdef DEBUG
                                 std::cout<<"layer "<<i<<" unlock"<<std::endl;
@@ -175,7 +173,9 @@ namespace bft {
                             }
                         } else {
                             layers->at(0).unlock();
+#ifdef DEBUG
                             std::cout<<"layer 0 unlock"<<std::endl;
+#endif
                         }
 
                         return ret;
