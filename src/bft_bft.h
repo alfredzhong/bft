@@ -114,19 +114,25 @@ namespace bft {
                         return ret;
                     }
                 } else {
+#ifdef DEBUG
                     std::cout<<"bft_bft::add(): txn fail, use fallback mutex"<<std::endl;
                     fflush(stdout);
+#endif
 
                     layers->at(0).lock();
+#ifdef DEBUG
                     std::cout<<"layer 0 lock"<<std::endl;
                     fflush(stdout);
+#endif
 
                     if (layers->at(0).size() + 1 <= first_layer_capacity) {
                         if (layers->at(0).add(node) != 0) {
                             ret = -1;
                             layers->at(0).unlock();
+#ifdef DEBUG
                             std::cout<<"layer 0 unlock"<<std::endl;
                             fflush(stdout);
+#endif
                             return ret;
                         } 
                         cur_size ++;
@@ -143,17 +149,26 @@ namespace bft {
                                     layers->push_back(*next_layer);
                                 }
                                 layers->at(j).lock();
+#ifdef DEBUG
                                 std::cout<<"layer "<<j<<" lock"<<std::endl;
                                 fflush(stdout);
                                 std::cout<<"to merge"<<std::endl;
+#endif
                                 layers->at(i).merge_to(&layers->at(j));
+#ifdef DEBUG
                                 fflush(stdout);
+#endif
                                 layers->at(i).unlock();
+#ifdef DEBUG
                                 std::cout<<"layer "<<i<<" unlock"<<std::endl;
+                                fflush(stdout);
+#endif
                                 if (layers->at(j).size() < pow(2,j) * first_layer_capacity) {
-                                    fflush(stdout);
                                     layers->at(j).unlock();
+#ifdef DEBUG
                                     std::cout<<"layer "<<j<<" unlock"<<std::endl;
+                                    fflush(stdout);
+#endif
                                     break;
                                 }
                                 i++; j++;
