@@ -85,6 +85,10 @@ namespace bft {
                 if (data == NULL || data->size() + 1> capacity) {
                     return -1;
                 }
+                if (data == NULL) {
+                    std::cout<<"data == NULL in bft_layer.add()"<<std::endl;
+                    exit(-1);
+                }
                 data->push_back(t);
                 return 0;
             }
@@ -100,15 +104,27 @@ namespace bft {
                 if (i<0 || i >= data->size()) {
                     return NULL;
                 }
+                if (i>=data->size() || i<0) {
+                    std::cout<<"at bft_layer.get(), data out of bound"<<std::endl;
+                    exit(-1);
+                }
                 bft::bft_node<K,V>* ret = &(data->at(i));
                 return ret;
             }
 
             void clear() {
+                if (data == NULL) {
+                    std::cout<<"data == NULL in bft_layer.clear()"<<std::endl;
+                    exit(-1);
+                }
                 data->clear();
             }
 
             int sort() {
+                if (data == NULL) {
+                    std::cout<<"data == NULL in bft_layer.sort()"<<std::endl;
+                    exit(-1);
+                }
                 if (data->size() <= 1) return 0;
                 if (compare_func==NULL) return -1;
 #ifdef DEBUG
@@ -123,6 +139,10 @@ namespace bft {
             
             // need to overload < == > for key class K
             std::vector<bft::bft_node<K,V> >* binary_search(K key) {
+                if (data == NULL) {
+                    std::cout<<"data == NULL in bft_layer.add()"<<std::endl;
+                    exit(-1);
+                }
                 if (data->size() <= 0) return NULL;
 
                 std::vector<bft::bft_node<K,V> >* ret 
@@ -182,9 +202,22 @@ namespace bft {
             }
 
             void merge_to(bft::bft_layer<K,V> *another_layer) {
+                if (data == NULL) {
+                    std::cout<<"data == NULL"<<std::endl;
+                }
+                std::cout<<"in bft_layer.merge_to(), data->size() = "<<data->size()<<"\n";
                 int n = data->size();
+                if (another_layer == NULL) {
+                    std::cout<<"in bft_layer.merge_to(), another_layer == NULL"<<"\n";
+                }
                 //int m = another_layer->size();
                 for (int i=0; i<n; i++) {
+                    if (i<0 || i>=data->size()) {
+                        
+                        std::cout<<" in bft_layer.merge_to, data out of bound " <<std::endl;
+                        std::cout<<"i="<<i<<", data->size()="<<data->size()<<std::endl;
+                        //exit(-2);
+                    }
                     another_layer->add(data->at(i));
                 }
                 another_layer->sort();

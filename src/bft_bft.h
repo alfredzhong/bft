@@ -11,6 +11,7 @@
 
 #include <bft_layer.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #define DEFAULT_INIT_LAYERS 5
 
@@ -84,36 +85,56 @@ namespace bft {
                     start_txn = 999;
                 }
                 if (start_txn == -1) {
-                    if (layers->at(0).size() + 1 <= first_layer_capacity) {
-                        if (layers->at(0).add(node) != 0) {
-                            ret = -1;
+                    try {
+                        if (layers == NULL || layers->size() < 1) {
+                            std::cerr<<"Error in bft_bft.add(): layers == NULL || layers.size() < 1"<<std::endl;
+                            exit(-1);
+                        }
+                        if (layers->at(0).size() + 1 <= first_layer_capacity) {
+                            if (layers->at(0).add(node) != 0) {
+                                ret = -1;
+                                _xend();
+                                return ret;
+                            }
+                            cur_size ++;
+                            if (layers->at(0).size() == first_layer_capacity) {
+                                layers->at(0).sort();
+                                int i = 0, j = 1;
+                                while (true) {
+                                    if (layers->size() == i+1) {
+                                        int new_layer_capacity = pow(2,i+1)*first_layer_capacity;
+                                        bft::bft_layer<K, V>* next_layer 
+                                            = new bft::bft_layer<K, V>(new_layer_capacity);
+                                        next_layer->set_compare_func(compare_func);
+                                        layers->push_back(*next_layer);
+                                    }
+
+                                    if (i<0 || i>=layers->size()) {
+                                        std::cerr<<"Error in bft_bft.add(): i out of range"<<std::endl;
+                                        exit(-1);
+                                    }
+                                    if (j<0 || j>=layers->size()) {
+                                        std::cerr<<"Error jn bft_bft.add(): j out of range"<<std::endl;
+                                        exit(-1);
+                                    }
+
+                                    layers->at(i).merge_to(&layers->at(j));
+                                    if (layers->at(j).size() < pow(2,j) * first_layer_capacity) {
+                                        break;
+                                    }
+                                    i++; j++;
+                                }
+                            }
+
                             _xend();
                             return ret;
                         }
-                        cur_size ++;
-                        if (layers->at(0).size() == first_layer_capacity) {
-                            layers->at(0).sort();
-                            int i = 0, j = 1;
-                            while (true) {
-                                if (layers->size() == i+1) {
-                                    int new_layer_capacity = pow(2,i+1)*first_layer_capacity;
-                                    bft::bft_layer<K, V>* next_layer 
-                                        = new bft::bft_layer<K, V>(new_layer_capacity);
-                                    next_layer->set_compare_func(compare_func);
-                                    layers->push_back(*next_layer);
-                                }
-                                layers->at(i).merge_to(&layers->at(j));
-                                if (layers->at(j).size() < pow(2,j) * first_layer_capacity) {
-                                    break;
-                                }
-                                i++; j++;
-                            }
-                        }
-
-                        _xend();
-                        return ret;
+                    } catch (std::out_of_range e) {
+                        std::cout<<"out of range caught in bft_bft.add txn"<<std::endl;
+                        exit(-1);
                     }
                 } else {
+                    try {
 #ifdef DEBUG
                     std::cout<<"bft_bft::add(): txn fail, use fallback mutex"<<std::endl;
                     fflush(stdout);
@@ -183,6 +204,10 @@ namespace bft {
 
                     layers->at(0).unlock();
                     std::cout<<"error, when adding, layer 0 has no space"<<std::endl;
+                    } catch (std::out_of_range e) {
+                        std::cout<<"out of range caught in bft_bft.add txn"<<std::endl;
+                        exit(-1);
+                    }
                 }
                 return 0;
             }
@@ -199,6 +224,7 @@ namespace bft {
                     start_txn = 999;
                 }
                 if (start_txn == -1) {
+                    std::cout<<"layers->size() = "<<layers->size()<<std::endl;
                     int n = layers->size();
                     for (int i=0; i<n; i++) {
                         layers->at(i).clear();

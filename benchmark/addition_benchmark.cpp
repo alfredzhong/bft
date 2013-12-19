@@ -20,19 +20,23 @@ int num_threads = 10;
 int repeats = 100;
 
 void addition_bench() {
-    bft::bft_bft<int, int> *tree 
-        = (bft::bft_bft<int, int> *)tree_ptr;
-    for (int j=0; j<repeats; j++) {
-        for (int i=0; i<num_insertion_per_thread; i++) {
-            //std::cout<<"i="<<i<<std::endl;
-            bft::bft_node<int,int> cur_kv(i, i*100);
-            tree->add(cur_kv);
-            //std::cout<<tree->to_string();
-            //std::cout<<"done add"<<std::endl;
-        }
-        
-        //tree->clear();
-    }
+        bft::bft_bft<int, int> *tree 
+            = (bft::bft_bft<int, int> *)tree_ptr;
+            for (int i=0; i<num_insertion_per_thread; i++) {
+                //std::cout<<"i="<<i<<std::endl;
+                bft::bft_node<int,int> cur_kv(i, i*100);
+                try {
+                    tree->add(cur_kv);
+                } catch (std::out_of_range e) {
+                    std::cout<<"out of range caught in add"<<std::endl;
+                    exit(-1);
+                }
+
+                //std::cout<<tree->to_string();
+                //std::cout<<"done add"<<std::endl;
+            }
+
+            std::cout<<"tree cleared"<<std::endl;
 }
 
 
@@ -59,12 +63,20 @@ int main(int argc, char** argv) {
         tree.set_rtx(true);
     }
 
-    for (int i=0; i<num_threads; i++) {
-        threads[i] = new std::thread(addition_bench);
-    }
 
-    for (int i=0; i<num_threads; i++) {
-        threads[i]->join();
+    for (int j=0; j<repeats; j++) {
+        for (int i=0; i<num_threads; i++) {
+            if (threads[i] != NULL) {
+                delete threads[i];
+            }
+            threads[i] = new std::thread(addition_bench);
+        }
+
+        for (int i=0; i<num_threads; i++) {
+            threads[i]->join();
+        }
+
+        tree.clear();
     }
 
     std::cout<<tree.to_string();
