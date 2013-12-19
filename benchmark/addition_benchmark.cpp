@@ -18,6 +18,7 @@ void *tree_ptr = (void*)&tree;
 int num_insertion_per_thread = 20;
 int num_threads = 10;
 int repeats = 100;
+int use_rtx = 1;
 
 void addition_bench() {
         bft::bft_bft<int, int> *tree 
@@ -42,10 +43,11 @@ void addition_bench() {
 
 
 int main(int argc, char** argv) {
-    if (argc == 4) {
+    if (argc == 5) {
         num_insertion_per_thread = atoi(argv[1]);
         num_threads = atoi(argv[2]);
         repeats = atoi(argv[3]);
+        use_rtx = atoi(argv[4]);
     }
     std::cout<<"num_insertion_per_thread = "<<num_insertion_per_thread<<std::endl;
     std::cout<<"num_threads = "<<num_threads<<std::endl;
@@ -56,7 +58,6 @@ int main(int argc, char** argv) {
         threads[i] = NULL;
     }
 
-    int use_rtx = atoi(argv[2]);
     if (use_rtx == 0) {
         tree.set_rtx(false);
     } else {
