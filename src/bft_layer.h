@@ -30,7 +30,7 @@ namespace bft {
     template <class K, class V>
     class bft_layer {
         protected:
-            std::vector<bft_node<K,V> > *data;
+            std::vector<bft_node<K,V> > data;
         private:
             int *next;
             int capacity;
@@ -40,8 +40,7 @@ namespace bft {
         public:
             bft_layer(int capacity) {
                 this->capacity = capacity;
-                data = new std::vector<bft::bft_node<K,V> >();
-                data->reserve(capacity);
+                data.reserve(capacity);
                 compare_func = NULL;
                 fallback_mutex = new std::mutex();
             }
@@ -49,8 +48,7 @@ namespace bft {
 
             bft_layer(int capacity, bool (*compare_func)(bft::bft_node<K,V>, bft::bft_node<K,V>)) {
                 this->capacity = capacity;
-                data = new std::vector<bft::bft_node<K,V> >();
-                data->reserve(capacity);
+                data.reserve(capacity);
                 this->compare_func = compare_func;
                 fallback_mutex = new std::mutex();
             }
@@ -58,21 +56,12 @@ namespace bft {
 
             bft_layer() {
                 this->capacity = BFT_DEFAULT_LAYER_SIZE;
-                data = new std::vector<bft::bft_node<K,V> >();
-                data->reserve(this->capacity);
+                data.reserve(this->capacity);
                 compare_func = NULL;
             }
 
             ~bft_layer() {
-                if (data != NULL) {
-                    data->clear();
-                    delete data;
-                    data = NULL;
-                } 
-                if (fallback_mutex != NULL) {
-                    delete fallback_mutex;
-                    fallback_mutex = NULL;
-                }
+                data.clear();
             }
 
             void set_compare_func(bool (*compare_func)(bft::bft_node<K,V>, bft::bft_node<K,V>)) {
@@ -82,55 +71,40 @@ namespace bft {
             // return 0, if add was successful
             // return -1 otherwise
             int add(bft::bft_node<K,V> t) {
-                if (data == NULL || data->size() + 1> capacity) {
+                if (data.size() + 1> capacity) {
                     return -1;
                 }
-                if (data == NULL) {
-                    std::cout<<"data == NULL in bft_layer.add()"<<std::endl;
-                    exit(-1);
-                }
-                data->push_back(t);
+                data.push_back(t);
                 return 0;
             }
 
             int size() {
-                if (data == NULL) {
-                    return -1;
-                }
-                return data->size();
+                return data.size();
             }
 
             bft::bft_node<K,V>* get(int i) {
-                if (i<0 || i >= data->size()) {
+                if (i<0 || i >= data.size()) {
                     return NULL;
                 }
-                if (i>=data->size() || i<0) {
+                if (i>=data.size() || i<0) {
                     std::cout<<"at bft_layer.get(), data out of bound"<<std::endl;
                     exit(-1);
                 }
-                bft::bft_node<K,V>* ret = &(data->at(i));
+                bft::bft_node<K,V>* ret = &(data.at(i));
                 return ret;
             }
 
             void clear() {
-                if (data == NULL) {
-                    std::cout<<"data == NULL in bft_layer.clear()"<<std::endl;
-                    exit(-1);
-                }
-                data->clear();
+                data.clear();
             }
 
             int sort() {
-                if (data == NULL) {
-                    std::cout<<"data == NULL in bft_layer.sort()"<<std::endl;
-                    exit(-1);
-                }
-                if (data->size() <= 1) return 0;
+                if (data.size() <= 1) return 0;
                 if (compare_func==NULL) return -1;
 #ifdef DEBUG
                 std::cout<<"in sort: to sort"<<std::endl;
 #endif
-                std::sort(data->begin(), data->end(), compare_func);
+                std::sort(data.begin(), data.end(), compare_func);
 #ifdef DEBUG
                 std::cout<<"in sort: sorted"<<std::endl;
 #endif
@@ -139,49 +113,45 @@ namespace bft {
             
             // need to overload < == > for key class K
             std::vector<bft::bft_node<K,V> >* binary_search(K key) {
-                if (data == NULL) {
-                    std::cout<<"data == NULL in bft_layer.add()"<<std::endl;
-                    exit(-1);
-                }
-                if (data->size() <= 0) return NULL;
+                if (data.size() <= 0) return NULL;
 
                 std::vector<bft::bft_node<K,V> >* ret 
                     = new std::vector<bft::bft_node<K,V> >();
 
-                if (data->size() == 1) {
-                    if (data->at(0).key == key) {
-                        ret->push_back(data->at(0));
+                if (data.size() == 1) {
+                    if (data.at(0).key == key) {
+                        ret->push_back(data.at(0));
                         return ret;
                     } 
                     delete ret;
                     return NULL;
                 }
 
-                int n = data->size();
-                int start = 0, end = data->size()-1;
-                if (key < data->at(start).key 
-                        || key > data->at(end).key) {
+                int n = data.size();
+                int start = 0, end = data.size()-1;
+                if (key < data.at(start).key 
+                        || key > data.at(end).key) {
                     delete ret;
                     return NULL;
                 }
                 while (start<end) {
                     int mid = start + (end-start)/2;
-                    if (data->at(mid).key == key) {
+                    if (data.at(mid).key == key) {
                         int i = mid;
-                        while (i-1>=0 && data->at(i-1).key == key) {
+                        while (i-1>=0 && data.at(i-1).key == key) {
                             i--;
                         }
 
                         int j = mid;
-                        while (j+1<n && data->at(j+1).key == key) {
+                        while (j+1<n && data.at(j+1).key == key) {
                             j++;
                         }
 
                         for (int k = i; k<= j; k++) {
-                            ret->push_back(data->at(k)); 
+                            ret->push_back(data.at(k)); 
                         }
                         break;
-                    } else if (key < data->at(mid).key) {
+                    } else if (key < data.at(mid).key) {
                         end = mid - 1;
                     } else {
                         start = mid + 1;
@@ -202,43 +172,40 @@ namespace bft {
             }
 
             void merge_to(bft::bft_layer<K,V> *another_layer) {
-                if (data == NULL) {
-                    std::cout<<"data == NULL"<<std::endl;
-                }
-                std::cout<<"in bft_layer.merge_to(), data->size() = "<<data->size()<<"\n";
-                int n = data->size();
+                //std::cout<<"in bft_layer.merge_to(), data.size() = "<<data.size()<<"\n";
+                int n = data.size();
                 if (another_layer == NULL) {
                     std::cout<<"in bft_layer.merge_to(), another_layer == NULL"<<"\n";
                 }
                 //int m = another_layer->size();
                 for (int i=0; i<n; i++) {
-                    if (i<0 || i>=data->size()) {
+                    if (i<0 || i>=data.size()) {
                         
                         std::cout<<" in bft_layer.merge_to, data out of bound " <<std::endl;
-                        std::cout<<"i="<<i<<", data->size()="<<data->size()<<std::endl;
+                        std::cout<<"i="<<i<<", data.size()="<<data.size()<<std::endl;
                         //exit(-2);
                     }
-                    another_layer->add(data->at(i));
+                    another_layer->add(data.at(i));
                 }
                 another_layer->sort();
 #ifdef DEBUG
                 std::cout<<"new layer sorted"<<std::endl;
 #endif
-                data->clear();
+                data.clear();
             }
 
             // debug purpose, only works for both key and value of "int" type
             std::string to_string() {
-                if (data==NULL || data->size() == 0) {
+                if (data.size() == 0) {
                     return "<empty layer>\n";
                 }
                 std::string ret = "";
-                int n = data->size();
+                int n = data.size();
                 for (int i=0; i<n; i++) {
                     ret += "(";
-                    ret += std::to_string(data->at(i).key);
+                    ret += std::to_string(data.at(i).key);
                     ret += ", ";
-                    ret += std::to_string(data->at(i).value);
+                    ret += std::to_string(data.at(i).value);
                     ret += ") ";
                 }
                 ret += "\n";

@@ -21,23 +21,21 @@ int repeats = 100;
 int use_rtx = 1;
 
 void addition_bench() {
-        bft::bft_bft<int, int> *tree 
-            = (bft::bft_bft<int, int> *)tree_ptr;
-            for (int i=0; i<num_insertion_per_thread; i++) {
-                //std::cout<<"i="<<i<<std::endl;
-                bft::bft_node<int,int> cur_kv(i, i*100);
-                try {
-                    tree->add(cur_kv);
-                } catch (std::out_of_range e) {
-                    std::cout<<"out of range caught in add"<<std::endl;
-                    exit(-1);
-                }
+    for (int i=0; i<num_insertion_per_thread; i++) {
+        //std::cout<<"i="<<i<<std::endl;
+        bft::bft_node<int,int> cur_kv(i, i*100);
+        try {
+            tree.add(cur_kv);
+        } catch (std::out_of_range e) {
+            std::cout<<"out of range caught in add"<<std::endl;
+            exit(-1);
+        }
 
-                //std::cout<<tree->to_string();
-                //std::cout<<"done add"<<std::endl;
-            }
+        //std::cout<<tree->to_string();
+        //std::cout<<"done add"<<std::endl;
+    }
 
-            std::cout<<"tree cleared"<<std::endl;
+    //std::cout<<"tree cleared"<<std::endl;
 }
 
 
@@ -76,11 +74,12 @@ int main(int argc, char** argv) {
         for (int i=0; i<num_threads; i++) {
             threads[i]->join();
         }
-
         tree.clear();
     }
 
     std::cout<<tree.to_string();
+    std::cout<<"transaction success: "<<tree.txn_success<<std::endl;
+    std::cout<<"transaction fail: "<<tree.txn_fail<<std::endl;
 
     return 0;
 }
